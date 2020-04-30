@@ -1,0 +1,161 @@
+---
+title: "pcaAnalysis"
+author: "Siyuan"
+date: "30/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r plot}
+library("SummarizedExperiment")
+library("readODS")
+library("scatterD3")
+library(plotly)
+
+pcaAnalysis <- function(sExpt, iqr.cutoff=0.1, category.selected = c("standard", "test"),
+                        plot=c("2d", "3d")) {
+  ###########################################################################
+  ## PART I. Filter samples according to phenoData
+  ###########################################################################
+  ## o phenoData table contains which samples should be used in the analysis
+  ##    o the samples which should be used in the analysis will have an
+  ##     assigned category sExpt@phenoData$category, as "standard" or "test"
+  ##    o non-assigned samples with NA values will be ignored
+  pdata <- colData(sExpt)
+  ## filter out samples with missing category and/or general cell type
+  pdata.sel <- .filterPheno(pdata, fun.main, "na")
+  
+  ############################################################################
+  ## PART II. Filter genes in dataset
+  ############################################################################
+  ## A. Keep only the samples in the selected category (either 'standard' or 'test')
+  sel <- pdata.sel$category %in% category.selected
+  if (sum(sel) == 0)
+    stop(paste("No sample in the selected category was found, exiting function",
+               fun.main))
+  pdata.sel <- pdata.sel[sel, ]
+  ynorm <- assay(sExpt[, sel], "counts")
+  
+  ## B. Filter out not variable probes,
+  ##    o variance in terms of IQR of median expressions
+  ##    o want to get rid of probes that are below a given IQR threshold
+  
+  ## Calculate IQR of the samples and filter by the given IQR threshold
+  medIQR <- apply(ynorm, 1, IQR)
+  selGenes <- medIQR >= quantile(medIQR, probs=1 - iqr.cutoff)
+  if (sum(selGenes) == 0) {
+    ## this should almost never happen
+    stop(paste("No gene passed the IQR-based filtering, exiting function",
+               fun.main))
+  }
+  
+  ## We keep for score calculation the gene-filtered dataset with standards
+  ## and test samples
+  ynormIQR <- assay(sExpt[selGenes, rownames(pdata.sel)], "counts")
+  
+  ############################################################################
+  ## PART III. PCA Analysis of the filtered data
+  ############################################################################
+  
+  ## Remove any rows that have zero variance
+  sel <- apply(ynormIQR, 1, function(x) sd(x) != 0)
+  ynormIQR <- ynormIQR[sel,]
+  
+  pca <- prcomp(t(ynormIQR), scale=TRUE)
+  
+  ## Get proportion of variance explained by PC1 and PC2
+  pca.sum <- summary(pca)
+  pc1 <- pca.sum$importance[2,1] * 100
+  pc2 <- pca.sum$importance[2,2] * 100
+  pc3 <- pca.sum$importance[2,3] * 100
+  
+  print(pc1)
+  print(pc2)
+  print(pc3)
+    
+  ## Extract coordinates from pca object
+  pca.comp <- as.data.frame(pca$x[, c(1, 2, 3)])
+  pca.comp <- cbind(pca.comp,
+    cell_type = pdata.sel[, "cell_type"],
+    sample_name = rownames(pca.comp))
+
+  if (plot == "2d") {
+    ## 2D plot of the first and second principal components
+    tooltips <- paste(" <strong>", pca.comp$sample_name,"</strong><br />", pca.comp$cell_type)
+    scatterD3(data = pca.comp, x=PC1, y=PC2, tooltip_text = tooltips,
+            col_var=cell_type)
+  } else {
+    ## 3D plot
+    fig <- plot_ly(pca.comp, x = ~PC1, y = ~PC2, z = ~PC3, color = ~cell_type,
+                   text = ~sample_name)
+    fig <- fig %>% add_markers()
+    fig <- fig %>% layout(scene = list(xaxis = list(title = paste('PC1(', pc1, '%)')),
+                                     yaxis = list(title = paste('PC2(', pc2, '%)')),
+                                     zaxis = list(title = paste('PC3(', pc3, '%)'))), 
+                          title = paste('3D plot of PCA analysis result (', category.selected,
+                                        ' cells, IQR cutoff: ', iqr.cutoff))
+  
+    fig
+  }
+}
+
+################################################################################
+## FUNCTION: .filterPheno
+################################################################################
+#' From utils.R in CellScore
+#' Filters samples from phenotype data with missing info
+#' @param pheno a DataFrame with phenotype descriptions
+#' @param calling.fun a character - name of the parent function calling this
+#'   function
+#' @param flag a character - type of filter, one of the following: 'na',
+#'   'group', subgroup', anygroup' (the last option checks for any match in
+#'   group or subgroup)
+#' @param flag.value a character - cell name needed for the 'specifc' filter
+#' @return filtered data.frame
+#' @keywords filter
+.filterPheno <- function(pheno, calling.fun,
+                         flag = c("na", "group", "subgroup", "anygroup"),
+                         flag.value=NULL){
+    ## If filtering by (sub)groups, the flag.value must be specified
+    stopifnot(flag == "na" || !is.null(flag.value))
+
+    sel <- switch(flag,
+                  na = !is.na(pheno$category) & !is.na(pheno$general_cell_type),
+                  group = pheno$general_cell_type %in% flag.value,
+                  subgroup = pheno$sub_cell_type1 %in% flag.value,
+                  anygroup = pheno$general_cell_type %in% flag.value |
+                      pheno$sub_cell_type1 %in% flag.value)
+
+    if (sum(sel) == 0){
+        print(sel)
+        stop(paste("No samples left after phenotype filtering, exiting function",
+                   calling.fun))
+    }
+
+    pheno[sel, ]
+}
+
+# read the file selectedDEE2SExpr.rds that stores SummarizedExperiment object
+# of the count data.
+selectedDEE2SExpr <- readRDS("../rdsFiles/selectedDEE2SExpr.rds")
+
+# PCA analysis of standard samples
+pcaAnalysis(selectedDEE2SExpr, 0.1, "standard", "3d")
+pcaAnalysis(selectedDEE2SExpr, 0.1, "standard", "2d")
+pcaAnalysis(selectedDEE2SExpr, 0.2, "standard", "3d")
+pcaAnalysis(selectedDEE2SExpr, 0.2, "standard", "2d")
+pcaAnalysis(selectedDEE2SExpr, 0.3, "standard", "3d")
+pcaAnalysis(selectedDEE2SExpr, 0.3, "standard", "2d")
+
+# PCA analysis of test samples
+pcaAnalysis(selectedDEE2SExpr, 0.1, "test", "3d")
+pcaAnalysis(selectedDEE2SExpr, 0.1, "test", "2d")
+pcaAnalysis(selectedDEE2SExpr, 0.2, "test", "3d")
+pcaAnalysis(selectedDEE2SExpr, 0.2, "test", "2d")
+pcaAnalysis(selectedDEE2SExpr, 0.3, "test", "3d")
+pcaAnalysis(selectedDEE2SExpr, 0.3, "test", "2d")
+
+```
