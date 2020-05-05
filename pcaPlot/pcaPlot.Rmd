@@ -140,7 +140,7 @@ pcaAnalysis <- function(sExpt, iqr.cutoff=0.1, category.selected = c("standard",
 
 # read the file selectedDEE2SExpr.rds that stores SummarizedExperiment object
 # of the count data.
-selectedDEE2SExpr <- readRDS("../rdsFiles/selectedDEE2SExpr.rds")
+selectedDEE2SExpr <- readRDS("../selectedDEE2SExpr.rds")
 
 # PCA analysis of standard samples
 pcaAnalysis(selectedDEE2SExpr, 0.1, "standard", "3d")
