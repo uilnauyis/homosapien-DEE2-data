@@ -1,5 +1,5 @@
 ---
-title: "pcaAnalysis"
+title: "Count Normalization and PCA Analysis"
 author: "Siyuan"
 date: "30/04/2020"
 output: html_document
@@ -14,9 +14,17 @@ library("SummarizedExperiment")
 library("readODS")
 library("scatterD3")
 library(plotly)
+library (DESeq2)
 
-pcaAnalysis <- function(sExpt, iqr.cutoff=0.1, category.selected = c("standard", "test"),
-                        plot=c("2d", "3d")) {
+DESeq2Normalization <- function(sExpt, iqr.cutoff=0.1, plot=c("2d", "3d")) {
+  ###########################################################################
+  ## PART 0. Check function arguments
+  ###########################################################################
+  #fun.main <- deparse(match.call()[[1]])
+  #  .stopIfNotExpressionSetOrSummarizedExperiment(inputObj, 'inputObj', fun.main)
+  #  .stopIfNotNumeric0to1(iqr.cutoff, 'min.diff.cutoff', fun.main)
+  #  sExpt <- .tryMakeSummarizedExperimentFromExpressionSet(inputObj)
+  
   ###########################################################################
   ## PART I. Filter samples according to phenoData
   ###########################################################################
@@ -24,47 +32,102 @@ pcaAnalysis <- function(sExpt, iqr.cutoff=0.1, category.selected = c("standard",
   ##    o the samples which should be used in the analysis will have an
   ##     assigned category sExpt@phenoData$category, as "standard" or "test"
   ##    o non-assigned samples with NA values will be ignored
-  pdata <- colData(sExpt)
+  ## o NOTE
+  ##   assigning NA values to samples is an easy way to eliminate samples
+  ##   from the analysis, without having to remove them from all input tables
+  ##   (eg removing from sExpt, pdata, calls)
+  phenoData <- colData(sExpt)
   ## filter out samples with missing category and/or general cell type
-  pdata.sel <- .filterPheno(pdata, fun.main, "na")
+  phenoData.sel <- .filterPheno(phenoData, fun.main, "na")
   
   ############################################################################
   ## PART II. Filter genes in dataset
   ############################################################################
-  ## A. Keep only the samples in the selected category (either 'standard' or 'test')
-  sel <- pdata.sel$category %in% category.selected
-  if (sum(sel) == 0)
-    stop(paste("No sample in the selected category was found, exiting function",
-               fun.main))
-  pdata.sel <- pdata.sel[sel, ]
-  ynorm <- assay(sExpt[, sel], "counts")
-  
-  ## B. Filter out not variable probes,
-  ##    o variance in terms of IQR of median expressions
-  ##    o want to get rid of probes that are below a given IQR threshold
-  
-  ## Calculate IQR of the samples and filter by the given IQR threshold
-  medIQR <- apply(ynorm, 1, IQR)
-  selGenes <- medIQR >= quantile(medIQR, probs=1 - iqr.cutoff)
-  if (sum(selGenes) == 0) {
-    ## this should almost never happen
-    stop(paste("No gene passed the IQR-based filtering, exiting function",
-               fun.main))
-  }
-  
-  ## We keep for score calculation the gene-filtered dataset with standards
-  ## and test samples
-  ynormIQR <- assay(sExpt[selGenes, rownames(pdata.sel)], "counts")
-  
+  ## A. For the cosine scoring, keep only the samples in the selected category
+  ## (either 'standard' or 'test')
+
+  #if (sum(phenoData.sel) == 0)
+  #  stop(paste("No samples in selected category found, exiting function",
+  #             fun.main))
+
+  sExpt <- sExpt[, rownames(phenoData.sel)]
+
+  # remove genes without any counts
+  sExpt <- sExpt[rowSums(assay(sExpt, "counts")) > 0 , ]
+
+  # Create DESeq.ds from the summarizedExperiment object
+  DESeq.ds <- DESeqDataSetFromMatrix(countData = (assay(sExpt, "counts") + 1),
+    colData = colData(sExpt),
+    rowData = rowData(sExpt),
+    design = ~cell_type)
+
+  # DESeq2 Default normalization method
+  DESeq.dsDefault <- estimateSizeFactors(DESeq.ds)
+  counts.sf_normalized <- counts(DESeq.dsDefault, normalized = TRUE)
+  log.norm.counts <- log2(counts.sf_normalized + 1)
+
+  log.norm.counts
+}
+
+#TPMNormalization <- function(sExpt, iqr.cutoff=0.1, plot=c("2d", "3d")) {
+#  ###########################################################################
+#  ## PART 0. Check function arguments
+#  ###########################################################################
+#  #fun.main <- deparse(match.call()[[1]])
+#  #  .stopIfNotExpressionSetOrSummarizedExperiment(inputObj, 'inputObj', fun.main)
+#  #  .stopIfNotNumeric0to1(iqr.cutoff, 'min.diff.cutoff', fun.main)
+#  #  sExpt <- .tryMakeSummarizedExperimentFromExpressionSet(inputObj)
+#  
+#  ###########################################################################
+#  ## PART I. Filter samples according to phenoData
+#  ###########################################################################
+#  ## o phenoData table contains which samples should be used in the analysis
+#  ##    o the samples which should be used in the analysis will have an
+#  ##     assigned category sExpt@phenoData$category, as "standard" or "test"
+#  ##    o non-assigned samples with NA values will be ignored
+#  ## o NOTE
+#  ##   assigning NA values to samples is an easy way to eliminate samples
+#  ##   from the analysis, without having to remove them from all input tables
+#  ##   (eg removing from sExpt, pdata, calls)
+#  phenoData <- colData(sExpt)
+#  ## filter out samples with missing category and/or general cell type
+#  phenoData.sel <- .filterPheno(phenoData, fun.main, "na")
+#  
+#  ############################################################################
+#  ## PART II. Filter genes in dataset
+#  ############################################################################
+#  ## A. For the cosine scoring, keep only the samples in the selected category
+#  ## (either 'standard' or 'test')
+#
+#  #if (sum(phenoData.sel) == 0)
+#  #  stop(paste("No samples in selected category found, exiting function",
+#  #             fun.main))
+#
+#  sExpt <- sExpt[, rownames(phenoData.sel)]
+#
+#  # remove genes without any counts
+#  sExpt <- sExpt[rowSums(assay(sExpt, "counts")) > 0 , ]
+#
+#  # 
+#}
+
+
+
+pcaPlot <- function(normalizedCount, pdata, colorVar, 
+  symbolVar, plot = c("3d", "2d")) {
   ############################################################################
   ## PART III. PCA Analysis of the filtered data
   ############################################################################
+  ##  1. Euclidean distance between categories
+  ##  2. Cosine similarity between categories
+  ## -DONT USE-3. cosine "score" between categories
+  ##      o 0 < cosine score <1 where range is set to 1-min(cosine.similarity)
+  ## What is this good for?
+  ##   a. Visualization and exploratory data analysis
+  ##   b. Generates values to be used for cell scoring
   
   ## Remove any rows that have zero variance
-  sel <- apply(ynormIQR, 1, function(x) sd(x) != 0)
-  ynormIQR <- ynormIQR[sel,]
-  
-  pca <- prcomp(t(ynormIQR), scale=TRUE)
+  pca <- prcomp(t(normalizedCount), scale=TRUE)
   
   ## Get proportion of variance explained by PC1 and PC2
   pca.sum <- summary(pca)
@@ -79,24 +142,22 @@ pcaAnalysis <- function(sExpt, iqr.cutoff=0.1, category.selected = c("standard",
   ## Extract coordinates from pca object
   pca.comp <- as.data.frame(pca$x[, c(1, 2, 3)])
   pca.comp <- cbind(pca.comp,
-    cell_type = pdata.sel[, "cell_type"],
-    sample_name = rownames(pca.comp))
+    cell_type = pdata[, "cell_type"], 
+    category = pdata[, "category"])
+  
+  tooltips <- paste(" <strong>", rownames(pca.comp),"</strong><br />", pca.comp$cell_type)
 
   if (plot == "2d") {
-    ## 2D plot of the first and second principal components
-    tooltips <- paste(" <strong>", pca.comp$sample_name,"</strong><br />", pca.comp$cell_type)
+    ## 2D plot
     scatterD3(data = pca.comp, x=PC1, y=PC2, tooltip_text = tooltips,
-            col_var=cell_type)
+            col_var=cell_type, symbol_var=category)
   } else {
     ## 3D plot
-    fig <- plot_ly(pca.comp, x = ~PC1, y = ~PC2, z = ~PC3, color = ~cell_type,
-                   text = ~sample_name)
+    fig <- plot_ly(pca.comp, x = ~PC1, y = ~PC2, z = ~PC3, color = ~cell_type, symbol = ~category, symbols = c('circle','x','o'))
     fig <- fig %>% add_markers()
-    fig <- fig %>% layout(scene = list(xaxis = list(title = paste('PC1(', pc1, '%)')),
-                                     yaxis = list(title = paste('PC2(', pc2, '%)')),
-                                     zaxis = list(title = paste('PC3(', pc3, '%)'))), 
-                          title = paste('3D plot of PCA analysis result (', category.selected,
-                                        ' cells, IQR cutoff: ', iqr.cutoff))
+    fig <- fig %>% layout(scene = list(xaxis = list(title = paste('PC1')),
+                                     yaxis = list(title = ('PC2')),
+                                     zaxis = list(title = ('PC3'))))
   
     fig
   }
@@ -142,20 +203,11 @@ pcaAnalysis <- function(sExpt, iqr.cutoff=0.1, category.selected = c("standard",
 # of the count data.
 selectedDEE2SExpr <- readRDS("../selectedDEE2SExpr.rds")
 
-# PCA analysis of standard samples
-pcaAnalysis(selectedDEE2SExpr, 0.1, "standard", "3d")
-pcaAnalysis(selectedDEE2SExpr, 0.1, "standard", "2d")
-pcaAnalysis(selectedDEE2SExpr, 0.2, "standard", "3d")
-pcaAnalysis(selectedDEE2SExpr, 0.2, "standard", "2d")
-pcaAnalysis(selectedDEE2SExpr, 0.3, "standard", "3d")
-pcaAnalysis(selectedDEE2SExpr, 0.3, "standard", "2d")
+# normalize the count data
+normalizedCount <- DESeq2Normalization(selectedDEE2SExpr)
 
-# PCA analysis of test samples
-pcaAnalysis(selectedDEE2SExpr, 0.1, "test", "3d")
-pcaAnalysis(selectedDEE2SExpr, 0.1, "test", "2d")
-pcaAnalysis(selectedDEE2SExpr, 0.2, "test", "3d")
-pcaAnalysis(selectedDEE2SExpr, 0.2, "test", "2d")
-pcaAnalysis(selectedDEE2SExpr, 0.3, "test", "3d")
-pcaAnalysis(selectedDEE2SExpr, 0.3, "test", "2d")
+#     
+pcaPlot(normalizedCount, colData(selectedDEE2SExpr), plot="2d")
+pcaPlot(normalizedCount, colData(selectedDEE2SExpr), plot="3d")
 
 ```

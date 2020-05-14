@@ -19,7 +19,7 @@ constructSExprFromDEE2Data <- function() {
         file = "./SelectedDEE2_v2_csv/GeneInfo.tsv", 
         sep = '\t', 
         row.names=1, 
-        header=TRUE)[, "GeneSymbol", drop=FALSE]
+        header=TRUE)
 
     ## get colData
     samplesDFrame <- import("./SelectedDEE2_v2.ods")
