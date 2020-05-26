@@ -1,0 +1,17 @@
+Package: DEE2HsapienData
+Title: Preprocessed and analysed hsapeins data downloaded from DEE2 
+        for CellScore analysis. 
+Version: 0.1.0
+Authors: Siyuan Liu
+Description: This package contains the Homo sapiens data that is downloaded from 
+        DEE2 and preprocessed  for CellScore analysis, along with the R code that 
+        performs the preprocessing.
+biocViews: ExpressionData, RNASeqData, GEO, ExperimentData,
+        Homo_sapiens_Data, Genome
+Imports: SummarizedExperiment (>= 1.18.1), rio (>= 0.5.16), getDEE2 (>= 0.0.4), 
+        readODS(>= 1.6.7), scatterD3(>= 0.9.1), plotly(>= 4.9.2.1), 
+        edgeR(>= 3.30.0), DESeq2(>= 1.28.1), stringr(>= 1.4.0)
+Depends: R (>= 4.0.0)
+License: GPL-3
+LazyData: true
+RoxygenNote: 7.1.0.9000
