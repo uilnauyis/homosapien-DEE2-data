@@ -6,30 +6,27 @@
 \usage{
 constructSExprFromDEE2Data(
   sampleInfoPath,
-  dee2DataDir,
+  outFile,
   species = c("athaliana", "celegans", "dmelanogaster", "drerio", "ecoli", "hsapiens",
-    "mmusculus", "rnorvegicus", "scerevisiae"),
-  overwrite = FALSE
+    "mmusculus", "rnorvegicus", "scerevisiae")
 )
 }
 \arguments{
-\item{sampleInfoPath}{a path to a .ods file that stores category, 
-general_cell_type, parental_cell_type and SRR_accession for each 
-sample}
+\item{sampleInfoPath}{A path to a spreadsheet file that stores 'category', 
+'general_cell_type', 'parental_cell_type' and 'SRR_accession' for each 
+sample.}
 
-\item{dee2DataDir}{directory to store files storing DEE2 data}
+\item{outFile}{By default, this parameter is NULL. If it is defined, then 
+files that contains DEE2 data will be downloaded to the current working 
+directory in a 'zip' file named as the value of this parameter.}
 
-\item{species}{the species of the DEE2 data}
-
-\item{overwrite}{a boolean parameter. If it is true, 'constructSExprFromDEE2Data'
-function will overwrite the files in the directory specified by parameter
-dee2DataDir. By default, the value is false.}
-
-\item{sExpr}{SummarizedExperiment object that is created via DEE2 R interface 
-or restored from downloaded files.}
-
-\item{counts.cutoff}{threshold of filtering the}
+\item{species}{the species of the DEE2 data. Available species includes 
+'athaliana', 'celegans','dmelanogaster','drerio','ecoli', 'hsapiens',
+'mmusculus','rnorvegicus' and 'scerevisiae'.}
 }
 \description{
 Construct the SummarizedExperiment object for the raw counts data.
+}
+\references{
+https://github.com/markziemann/dee2/blob/master/AccessDEEfromR.md
 }
