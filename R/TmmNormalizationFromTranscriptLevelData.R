@@ -1,4 +1,5 @@
-#' edgeR normalization based on Transcript-level count data
+#' TMM normalization based on gene-level count data summarized from 
+#' transcript-level estimates
 #'
 #' @param species
 #' @param srrAccessions
@@ -9,8 +10,8 @@
 #' @importFrom edgeR calcNormFactors DGEList scaleOffset filterByExpr
 #' @importFrom csaw calculateCPM
 #' @references https://bioconductor.org/packages/release/bioc/html/tximport.html
-edgeRTranscriptAnalysis <- function(species, srrAccessions, txInfo, outDir) {
-    txi <- .transcriptLevelAnalysis(species, srrAccessions, txInfo, outDir = NULL)
+TmmNormalizationFromTranscriptLevelData <- function(dee2Data) {
+    txi <- dee2Data$txi
 
     cts <- txi$counts
     normMat <- txi$length
@@ -22,7 +23,6 @@ edgeRTranscriptAnalysis <- function(species, srrAccessions, txInfo, outDir) {
 
     # Computing effective library sizes from scaled counts, to account for
     # composition biases between samples.
-    library(edgeR)
     eff.lib <- calcNormFactors(normCts) * colSums(normCts)
 
     # Combining effective library sizes with the length factors, and calculating
@@ -40,7 +40,16 @@ edgeRTranscriptAnalysis <- function(species, srrAccessions, txInfo, outDir) {
     sExpr <- SummarizedExperiment(
         assays = list(counts = y$counts, offset = y$offset))
     sExpr$totals <- y$samples$lib.size
-    library(csaw)
-    cpms <- calculateCPM(sExpr, use.offsets = TRUE, log = FALSE)
-}
 
+    log.cpms <- calculateCPM(sExpr, use.offsets = TRUE, log = TRUE)
+
+    normalizedSExpr <- sExpr
+    assay(normalizedSExpr, 'counts', withDimnames=FALSE) <- log.cpms
+    colData(normalizedSExpr) <- colData(dee2Data$sExpr)
+    rowDataRaw <- rowData(dee2Data$sExpr)
+    rowData(normalizedSExpr) <- 
+        rowDataRaw[rownames(rowDataRaw) %in% rownames(normalizedSExpr), ]
+    dee2Data[['normalizedSExpr']] <- normalizedSExpr
+  
+    dee2Data 
+}

@@ -1,20 +1,28 @@
-#' DESeq2 normalization for the selected DEE2 data
+#' Deseq2 normalization for the selected DEE2 data
+#' 'In some experiment, there might be gene-dependent dependencies which vary 
+#' across samples. For instance, GC-content bias or length bias might vary across 
+#' samples coming from different labs or processed at different times...'
 #'
-#' @param sExpr SummarizedExperiment object that is created via DEE2 R interface 
-#'    or restored from downloaded files.
-#' @param counts.cutoff threshold of filtering the 
+#' @param dee2Data
 #' @export 
 #' @importClassesFrom SummarizedExperiment SummarizedExperiment
 #' @importFrom SummarizedExperiment assay colData rowData
 #' @importFrom DESeq2 DESeqDataSetFromMatrix
 #' @importFrom BiocGenerics estimateSizeFactors counts
+#' @references http://www.sthda.com/english/wiki/rna-sequencing-data-analysis-counting-normalization-and-differential-expression#normalization-using-deseq2-size-factors
+#' @references https://uclouvain-cbio.github.io/BSS2019/rnaseq_gene_summerschool_belgium_2019.html
 
-DESeq2Normalization <- function(sExpr, counts.cutoff = 5, excludeFail = TRUE) {
-  sExpr <- .filterData(sExpr, counts.cutoff)
+Deseq2Normalization <- function(dee2Data) {
+  ## DESeq2 performs independent filtering of lowly expressed genes internally,
+  ## Thus we skip the filter step in DESeq2 normalization
+  sExpr <- dee2Data$sExpr
+
+  sExpr <- .filterData(sExpr)
 
   # Create DESeq.ds from the summarizedExperiment object
-  DESeq.ds <- DESeqDataSetFromMatrix(countData = (assay(sExpr, "counts") + 1),
-    colData = colData(sExpr),
+  DESeq.ds <- DESeqDataSetFromMatrix(
+    countData = assay(sExpr, "counts"),
+    colData = colData(sExpr), 
     rowData = rowData(sExpr),
     design = ~1)
 
@@ -23,7 +31,10 @@ DESeq2Normalization <- function(sExpr, counts.cutoff = 5, excludeFail = TRUE) {
   norm.counts <- counts(DESeq.dsDefault, normalized = TRUE)
   log.norm.counts <- log2(norm.counts + 1)
 
-  assay(sExpr, 'count') <- log.norm.counts
+  # 
+  normalizedSExpr <- sExpr
+  assay(normalizedSExpr, 'counts') <- log.norm.counts
+  dee2Data[['normalizedSExpr']] <- normalizedSExpr
 
-  sExpr
+  dee2Data
 }

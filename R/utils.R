@@ -7,40 +7,12 @@
 #' @return sExpr 
 #' @importFrom stringr regex str_detect
 #' @importFrom SummarizedExperiment colData
-.filterData <- function(sExpr, counts.cutoff = 5, excludeFail = TRUE) {
-  # remove samples that are marked as 'FAIL'
-  if (excludeFail) {
-    pData <- colData(sExpr)
-    sExpr <- sExpr[, !str_detect(pData$QC_summary, regex('FAIL.*'))]
-  }
-
+#' @importFrom matrixStats rowVars
+.filterData <- function(sExpr, counts.cutoff = 10) {
   # remove genes smaller than the cutoff
   sExpr <- sExpr[rowSums(assay(sExpr)) > counts.cutoff, ]
 
   sExpr
-}
-
-################################################################################
-## FUNCTION: .transcriptLevelAnalysis
-################################################################################
-#' @param species
-#' @param srrAccessions
-#' @param outDir
-#' @param txInfo 
-#' @return txi.kallisto.tsv
-#' @importFrom tximport tximport
-#' @importFrom SummarizedExperiment SummarizedExperiment
-.transcriptLevelAnalysis <- function(species, srrAccessions, txInfo, outDir = NULL) {
-    files <- .downloadAbundanceTsv(species, srrAccessions, outDir)
-
-    txInfo <- data.frame(TxID = rownames(txInfo), txInfo)[, 1:2]
-    rownames(txInfo) <- c(1:nrow(txInfo))
-
-    txi.kallisto.tsv <- tximport(files, 
-        type = "kallisto", 
-        tx2gene = txInfo, 
-        ignoreAfterBar = TRUE)
-    txi.kallisto.tsv
 }
 
 ################################################################################
@@ -51,6 +23,9 @@
 #' @param outDir 
 #' @return abundancefiles 
 .downloadAbundanceTsv <- function(species, srrAccessions, outDir = NULL) {
+    print('Downloading abundance files from DEE2 web API for each SRR accessions,
+        This step could take a very long time if the number of SRR accessions is
+        huge.')
     abundancefiles <- lapply(srrAccessions, function(srrAccession) {
         abundanceUrl <- file.path('http://dee2.io/data', 
             species, srrAccession, paste(srrAccession, '.ke.tsv.gz', sep = ""))

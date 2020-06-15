@@ -9,20 +9,21 @@
 #' @importClassesFrom edgeR DGEList
 #' @importFrom SummarizedExperiment assay
 #' @importFrom edgeR DGEList filterByExpr calcNormFactors cpm
+#' @references https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf
 
-TmmNormalization <- function(sExpr, counts.cutoff = 5, excludeFail = TRUE) {
-  
-  sExpr <- .filterData(sExpr, counts.cutoff)
+TmmNormalization <- function(dee2Data, counts.cutoff = 5, excludeFail = TRUE) {
+  sExpr <- dee2Data$sExpr
 
-  # https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf
   dgeList <- DGEList(counts = assay(sExpr))
   keep <- filterByExpr(dgeList)
   dgeList <- dgeList[keep, , keep.lib.sizes=FALSE]
   dgeList <- calcNormFactors(dgeList)
-  norm.counts <- cpm(dgeList)
-  log.norm.counts <- log2(norm.counts + 1)
+  log.norm.counts <- cpm(dgeList, log=TRUE)
 
-  assay(sExpr, withDimnames=FALSE) <- log.norm.counts
+  geneSel <- rownames(log.norm.counts)
+  normalizedSExpr <- SummarizedExperiment(assays=list(counts=log.norm.counts),
+    rowData=rowData(sExpr)[geneSel, ], colData=colData(sExpr))
+  dee2Data[['normalizedSExpr']] <- normalizedSExpr
 
-  sExpr
+  dee2Data
 }

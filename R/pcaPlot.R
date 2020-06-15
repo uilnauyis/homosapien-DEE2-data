@@ -10,6 +10,7 @@
 #' @importFrom scatterD3 scatterD3
 #' @importFrom plotly layout plot_ly add_markers
 #' @importFrom dplyr '%>%'
+#' @importFrom matrixStats rowVars
 
 pcaPlot <- function(sExpr, plot = c("3d", "2d")) {
   ############################################################################
@@ -23,9 +24,12 @@ pcaPlot <- function(sExpr, plot = c("3d", "2d")) {
   ##   a. Visualization and exploratory data analysis
   ##   b. Generates values to be used for cell scoring
   
-  normalizedCount <- assay(sExpr)
+  normalizedCount <- assay(sExpr, 'counts')
   pdata <- colData(sExpr)
   
+  # remove the gene of which the variance of counts accross samples equals to 0  
+  normalizedCount <- normalizedCount[rowVars(normalizedCount) > 0, ]
+
   ## Remove any rows that have zero variance
   pca <- prcomp(t(normalizedCount), scale=TRUE)
   
