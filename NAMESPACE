@@ -2,6 +2,7 @@
 
 export(Deseq2Normalization)
 export(Deseq2NormalizationFromTranscriptLevelData)
+export(NormalizedCountsHistogramPlot)
 export(TmmNormalization)
 export(TmmNormalizationFromTranscriptLevelData)
 export(getDEE2Data)
