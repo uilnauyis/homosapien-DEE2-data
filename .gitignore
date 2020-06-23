@@ -8,3 +8,5 @@ SelectedDEE2_v2.zip
 selectedDEE2SExpr.rds
 
 temp/
+inst/doc
+.Rproj.user/

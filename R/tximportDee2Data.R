@@ -6,20 +6,14 @@
 #' @param outDir
 #' @param txInfo dee2Data$TxInfo
 #' @export 
-#' @return txi.kallisto.tsv
+#' @return dee2Data
 #' @importFrom tximport tximport
-#' @importFrom SummarizedExperiment SummarizedExperiment
+#' @import readr 
 #' @references https://bioconductor.org/packages/devel/bioc/vignettes/tximport/inst/doc/tximport.html
 #' @examples 
 #' 
-#' ## According to the tutorial of 'tximport' package: "While tximport works 
-#' without any dependencies, it is significantly faster to read in files using 
-#' the readr package. If tximport detects that readr is installed, then it will 
-#' use the readr::read_tsv function by default. "
-#' library(readr)
-#' 
 #' ## This operation may requires up to 8GB of memory
-#' txi <- tximportDee2Data('hsapiens', dee2DataLoaded, )
+#' txi <- tximportDee2Data('hsapiens', dee2Data, )
 tximportDee2Data <- function(species, dee2Data, outDir = NULL) {
     srrAccessions <- colnames(dee2Data$GeneCounts)
     txInfo <- dee2Data$TxInfo
@@ -32,7 +26,7 @@ tximportDee2Data <- function(species, dee2Data, outDir = NULL) {
     txInfo <- data.frame(TxID = rownames(txInfo), txInfo)[, 1:2]
     rownames(txInfo) <- c(1:nrow(txInfo))
 
-    txi.kallisto.tsv <- tximport(files, 
+    txi.kallisto.tsv <- tximport::tximport(files, 
         type = "kallisto", 
         tx2gene = txInfo, 
         ignoreAfterBar = TRUE)

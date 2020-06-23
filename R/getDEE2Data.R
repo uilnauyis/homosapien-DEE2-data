@@ -40,7 +40,7 @@
 #' dir.create(tempDirPath)
 #' 
 #' ## get the 'list' object. 
-#' sExpr <- getDEE2Data(
+#' dee2Data <- getDEE2Data(
 #'  system.file("extdata", "SelectedDEE2_v2.ods", package = "DEE2HsapienData"),
 #'  paste(tempDirPath, 'DEE2Data', sep = '/') , 
 #'  'hsapiens')
@@ -50,7 +50,7 @@ getDEE2Data <- function(
     species = c('athaliana', 'celegans', 'dmelanogaster', 'drerio', 'ecoli',
         'hsapiens', 'mmusculus', 'rnorvegicus', 'scerevisiae')) {   
     ## get sample information from the file specified by 'sampleInfoPath'
-    samplesInfoDFrame <- import(sampleInfoPath)
+    samplesInfoDFrame <- rio::import(sampleInfoPath)
 
     ## Download and assgin DEE2 data. If 'outFile' is specified, tsv files will
     ## be saved at path specified by 'outFile' parameter 
@@ -67,19 +67,29 @@ getDEE2Data <- function(
     dee2Data
 }
 
+################################################################################
+## FUNCTION: .downloadDEE2Data
+################################################################################
+#' .downloadDEE2Data function
+#'
+#' @param species 
+#' @param samplesInfoDFrame
+#' @param outFile
+#' @importFrom getDEE2 getDEE2
+#' @return sExpr 
 .downloadDEE2Data <- function(species, samplesInfoDFrame, outFile) {
     SRR_accessions <- unique((samplesInfoDFrame[['SRR_accession']]))
-    dee2Data <- getDEE2(species, SRR_accessions, outfile = outFile)
+    dee2Data <- getDEE2::getDEE2(species, SRR_accessions, outfile = outFile)
     dee2Data
 }
 
 ################################################################################
 ## FUNCTION: .orderSamples
 ################################################################################
-#' order all dataframes in 'dee2Data' by the same order of samples in 
-#' 'GeneCount' dataframe
+#' .orderSamples function
+#'
 #' @param dee2Data a vector of dataframes that stores DEE2 data.
-#' @return Updated vector
+#' @return dee2Data 
 .orderSamples <- function(dee2Data) {
     orderSamples <- colnames(dee2Data$GeneCounts)
     dee2Data$GeneCounts <- dee2Data$GeneCounts[, orderSamples, drop = FALSE]
@@ -91,10 +101,20 @@ getDEE2Data <- function(
     dee2Data
 }
 
+################################################################################
+## FUNCTION: .excludeFailedSamples
+################################################################################
+#' .excludeFailedSamples function
+#'
+#' @param dee2Data a vector of dataframes that stores DEE2 data.
+#' @return dee2Data 
+#' @importFrom stringr str_detect regex
 .excludeFailedSamples <- function(dee2Data) {
   ## find the list of samples that are marked as 'FAIL' and add this list to 
   ## selected dee2 Data
-  fail <- str_detect(dee2Data$QcMx['QC_SUMMARY', , drop = FALSE], regex('FAIL.*'))
+  fail <- stringr::str_detect(
+      dee2Data$QcMx['QC_SUMMARY', , drop = FALSE], 
+      stringr::regex('FAIL.*'))
   dee2Data[['fail']] <- colnames(dee2Data$QcMx[, fail, drop = FALSE])
 
   ## exclude samples marked as 'FAIL' from dee2 data 
@@ -108,6 +128,16 @@ getDEE2Data <- function(
   dee2Data
 }
 
+################################################################################
+## FUNCTION: .constructSExprFromDEE2Data
+################################################################################
+#' .constructSExprFromDEE2Data function
+#' 
+#' @param dee2Data a vector of dataframes that stores DEE2 data.
+#' @param samplesInfoDFrame
+#' @return dee2Data 
+#' @importFrom SummarizedExperiment SummarizedExperiment colData rowData
+#' @importFrom S4Vectors DataFrame
 .constructSExprFromDEE2Data <- function(dee2Data, samplesInfoDFrame) {
 
     geneCountsDFrame <- dee2Data[["GeneCounts"]]
@@ -125,15 +155,26 @@ getDEE2Data <- function(
     orderSamples <- colnames(counts)
     orderGenes <- rownames(counts)
 
-    sExpr <- SummarizedExperiment(assays=list(counts=counts))
-    colData(sExpr) <- DataFrame(sampleMetadataDframe[orderSamples, , drop = FALSE])
-    rowData(sExpr) <- DataFrame(geneInfoDFrame[orderGenes, , drop = FALSE])
+    sExpr <- SummarizedExperiment::SummarizedExperiment(assays=list(counts=counts))
+    SummarizedExperiment::colData(sExpr) <- 
+        S4Vectors::DataFrame(sampleMetadataDframe[orderSamples, , drop = FALSE])
+    SummarizedExperiment::rowData(sExpr) <- 
+        S4Vectors::DataFrame(geneInfoDFrame[orderGenes, , drop = FALSE])
 
     dee2Data[['sExpr']] <- sExpr
 
     dee2Data
 }
 
+################################################################################
+## FUNCTION: .constructSampleMetadata
+################################################################################
+#' .constructSampleMetadata function
+#' 
+#' @param samplesInfoDFrame 
+#' @param metaDataFull 
+#' @return sampleMetadataDframe
+#' @importFrom stringr str_detect
 .constructSampleMetadata <- function(samplesInfoDFrame, metaDataFull) {
     ## Exclude duplicated samples
     samplesInfoDFrame <- samplesInfoDFrame[

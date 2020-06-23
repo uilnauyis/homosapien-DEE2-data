@@ -7,7 +7,7 @@
 across samples. For instance, GC-content bias or length bias might vary across 
 samples coming from different labs or processed at different times...'}
 \usage{
-Deseq2Normalization(dee2Data)
+Deseq2Normalization(dee2Data, counts.cutoff = 10)
 }
 \description{
 Deseq2 normalization for the selected DEE2 data

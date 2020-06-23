@@ -4,12 +4,10 @@
 \alias{NormalizedCountsHistogramPlot}
 \title{Histogram Plots of Normalized Counts}
 \usage{
-NormalizedCountsHistogramPlot(dee2Data, breaks = 100)
+NormalizedCountsHistogramPlot(sExpr)
 }
 \arguments{
 \item{sExpr}{SummarizedExperiment object that is created via DEE2 R interface}
-
-\item{plot}{the type of plot of the PCA analysis result}
 }
 \description{
 Histogram Plots of Normalized Counts

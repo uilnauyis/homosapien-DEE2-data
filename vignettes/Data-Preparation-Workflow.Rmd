@@ -1,6 +1,8 @@
 ---
 title: "Data-Preparation-Workflow"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    css: ./css/Data-Preparation-Workflow.css
 vignette: >
   %\VignetteIndexEntry{Data-Preparation-Workflow}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,5 +17,75 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
+## load the library
 library(DEE2HsapienData)
+```
+```{r}
+
+## Creat a 'temp' directory in current working directory if it is not created
+## already. In this tutorial, we use it as the workspace 
+tempDirPath <- paste(getwd(), 'temp', sep = '/')
+dir.create(tempDirPath)
+
+## get the 'list' object. 
+dee2Data <- getDEE2Data(
+ "/home/siyuan/Repos/DEE2HsapienData/inst/extdata/SelectedDEE2_testtwosamples.ods",
+ paste(tempDirPath, 'DEE2Data', sep = '/') , 
+ 'hsapiens')
+ ```
+ ```{r}
+## This operation may requires up to 8GB of memory
+dee2Data <- tximportDee2Data('hsapiens', dee2Data, )
+```
+```{r}
+## Normalize gene-level count data with Deseq2 normalization
+dESeq2NormalizedData <- Deseq2Normalization(dee2Data)
+```
+```{r}
+## Normalize gene-level count data summarzied from transcript-level data with 
+## Deseq2 normalization
+dESeq2NormalizedDataFromTxLevelData <- Deseq2NormalizationFromTranscriptLevelData(dee2Data)
+```
+```{r}
+## Normalize gene-level count data with TMM normalization
+tmmNormalizedData <- TmmNormalization(dee2Data)
+```
+```{r}
+## Normalize gene-level count data summarzied from transcript-level data with 
+## TMM normalization
+tmmNormalizedDataFromTxLevelData <- TmmNormalizationFromTranscriptLevelData(dee2Data)
+```
+```{r}
+pcaPlot(dESeq2NormalizedData$normalizedSExpr)
+```
+```{r}
+DESeq2NormalizedData2dPcaPlots <- pcaPlot(dESeq2NormalizedData$normalizedSExpr, 
+                                          plot = '2d')
+DESeq2NormalizedData2dPcaPlots[[1]]
+DESeq2NormalizedData2dPcaPlots[[2]]
+DESeq2NormalizedData2dPcaPlots[[3]]                    
+```
+```{r}
+pcaPlot(dESeq2NormalizedData$normalizedSExpr)
+```
+```{r}
+DESeq2NormalizedDataFromTxLevelData2dPcaPlots <- pcaPlot(
+  dESeq2NormalizedDataFromTxLevelData$normalizedSExpr, 
+  plot = '2d')
+DESeq2NormalizedDataFromTxLevelData2dPcaPlots[[1]]
+DESeq2NormalizedDataFromTxLevelData2dPcaPlots[[2]]
+DESeq2NormalizedDataFromTxLevelData2dPcaPlots[[3]]
+```
+```{r}
+pcaPlot(tmmNormalizedData$normalizedSExpr)
+```
+```{r}
+pcaPlot(tmmNormalizedData$normalizedSExpr, plot = '2d')
+```
+```{r}
+pcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr)
+```
+```{r}
+pcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr, plot = '2d')
+
 ```

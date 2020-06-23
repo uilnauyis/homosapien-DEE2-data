@@ -1,13 +1,12 @@
 ################################################################################
 ## FUNCTION: .filterData
 ################################################################################
+#' .filterData function
+#' 
 #' @param sExpr raw sExpr data object 
 #' @param counts.cutoff the threshold for filtering genes. For a specific gene,
 #'    the total cound 
 #' @return sExpr 
-#' @importFrom stringr regex str_detect
-#' @importFrom SummarizedExperiment colData
-#' @importFrom matrixStats rowVars
 .filterData <- function(sExpr, counts.cutoff = 10) {
   # remove genes smaller than the cutoff
   sExpr <- sExpr[rowSums(assay(sExpr)) > counts.cutoff, ]
@@ -18,6 +17,8 @@
 ################################################################################
 ## FUNCTION: .downloadAbundanceTsv
 ################################################################################
+#' .downloadAbundanceTsv function
+#'
 #' @param species
 #' @param srrAccessions
 #' @param outDir 

@@ -6,7 +6,7 @@
 #' @param txInfo
 #' @param outDir
 #' @export 
-#' @importFrom SummarizedExperiment SummarizedExperiment
+#' @importFrom SummarizedExperiment SummarizedExperiment colData rowData
 #' @importFrom edgeR calcNormFactors DGEList scaleOffset filterByExpr
 #' @importFrom csaw calculateCPM
 #' @references https://bioconductor.org/packages/release/bioc/html/tximport.html
@@ -23,7 +23,7 @@ TmmNormalizationFromTranscriptLevelData <- function(dee2Data) {
 
     # Computing effective library sizes from scaled counts, to account for
     # composition biases between samples.
-    eff.lib <- calcNormFactors(normCts) * colSums(normCts)
+    eff.lib <- edgeR::calcNormFactors(normCts) * colSums(normCts)
 
     # Combining effective library sizes with the length factors, and calculating
     # offsets for a log-link GLM.
@@ -31,23 +31,23 @@ TmmNormalizationFromTranscriptLevelData <- function(dee2Data) {
     normMat <- log(normMat)
 
     # Creating a DGEList object for use in edgeR.
-    y <- DGEList(cts)
-    y <- scaleOffset(y, normMat)
+    y <- edgeR::DGEList(cts)
+    y <- edgeR::scaleOffset(y, normMat)
     # filtering
-    keep <- filterByExpr(y)
+    keep <- edgeR::filterByExpr(y)
     y <- y[keep, ]
 
-    sExpr <- SummarizedExperiment(
+    sExpr <- SummarizedExperiment::SummarizedExperiment(
         assays = list(counts = y$counts, offset = y$offset))
     sExpr$totals <- y$samples$lib.size
 
-    log.cpms <- calculateCPM(sExpr, use.offsets = TRUE, log = TRUE)
+    log.cpms <- csaw::calculateCPM(sExpr, use.offsets = TRUE, log = TRUE)
 
     normalizedSExpr <- sExpr
-    assay(normalizedSExpr, 'counts', withDimnames=FALSE) <- log.cpms
-    colData(normalizedSExpr) <- colData(dee2Data$sExpr)
-    rowDataRaw <- rowData(dee2Data$sExpr)
-    rowData(normalizedSExpr) <- 
+    SummarizedExperiment::assay(normalizedSExpr, 'counts', withDimnames=FALSE) <- log.cpms
+    SummarizedExperiment::colData(normalizedSExpr) <- SummarizedExperiment::colData(dee2Data$sExpr)
+    rowDataRaw <- SummarizedExperiment::rowData(dee2Data$sExpr)
+    SummarizedExperiment::rowData(normalizedSExpr) <- 
         rowDataRaw[rownames(rowDataRaw) %in% rownames(normalizedSExpr), ]
     dee2Data[['normalizedSExpr']] <- normalizedSExpr
   

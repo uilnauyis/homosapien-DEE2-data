@@ -4,13 +4,13 @@
 \alias{TmmNormalization}
 \title{TMM normalization for the selected DEE2 data}
 \usage{
-TmmNormalization(dee2Data, counts.cutoff = 5, excludeFail = TRUE)
+TmmNormalization(dee2Data)
 }
 \arguments{
-\item{counts.cutoff}{threshold of filtering the}
-
 \item{sExpr}{SummarizedExperiment object that is created via DEE2 R interface 
 or restored from downloaded files.}
+
+\item{counts.cutoff}{threshold of filtering the}
 }
 \description{
 This function allows you to express your love of cats.

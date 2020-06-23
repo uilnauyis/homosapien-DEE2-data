@@ -49,7 +49,7 @@ tempDirPath <- paste(getwd(), 'temp', sep = '/')
 dir.create(tempDirPath)
 
 ## get the 'list' object. 
-sExpr <- getDEE2Data(
+dee2Data <- getDEE2Data(
  system.file("extdata", "SelectedDEE2_v2.ods", package = "DEE2HsapienData"),
  paste(tempDirPath, 'DEE2Data', sep = '/') , 
  'hsapiens')

@@ -11,11 +11,16 @@ tximportDee2Data(species, dee2Data, outDir = NULL)
 \item{txInfo}{dee2Data$TxInfo}
 }
 \value{
-txi.kallisto.tsv
+dee2Data
 }
 \description{
 Download abundance.tsv files (transcript-level estimate) for specified species 
 and SSR Accessions and get the gene-level estimate
+}
+\examples{
+
+## This operation may requires up to 8GB of memory
+txi <- tximportDee2Data('hsapiens', dee2Data, )
 }
 \references{
 https://bioconductor.org/packages/devel/bioc/vignettes/tximport/inst/doc/tximport.html

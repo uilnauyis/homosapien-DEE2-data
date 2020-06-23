@@ -12,28 +12,28 @@
 #' @references http://www.sthda.com/english/wiki/rna-sequencing-data-analysis-counting-normalization-and-differential-expression#normalization-using-deseq2-size-factors
 #' @references https://uclouvain-cbio.github.io/BSS2019/rnaseq_gene_summerschool_belgium_2019.html
 
-Deseq2Normalization <- function(dee2Data) {
+Deseq2Normalization <- function(dee2Data, counts.cutoff = 10) {
   ## DESeq2 performs independent filtering of lowly expressed genes internally,
   ## Thus we skip the filter step in DESeq2 normalization
   sExpr <- dee2Data$sExpr
 
-  sExpr <- .filterData(sExpr)
+  sExpr <- .filterData(sExpr, counts.cutoff)
 
   # Create DESeq.ds from the summarizedExperiment object
-  DESeq.ds <- DESeqDataSetFromMatrix(
-    countData = assay(sExpr, "counts"),
-    colData = colData(sExpr), 
-    rowData = rowData(sExpr),
+  DESeq.ds <- DESeq2::DESeqDataSetFromMatrix(
+    countData = SummarizedExperiment::assay(sExpr, "counts"),
+    colData = SummarizedExperiment::colData(sExpr), 
+    rowData = SummarizedExperiment::rowData(sExpr),
     design = ~1)
 
   # DESeq2 Default normalization method
-  DESeq.dsDefault <- estimateSizeFactors(DESeq.ds)
-  norm.counts <- counts(DESeq.dsDefault, normalized = TRUE)
+  DESeq.dsDefault <- BiocGenerics::estimateSizeFactors(DESeq.ds)
+  norm.counts <- BiocGenerics::counts(DESeq.dsDefault, normalized = TRUE)
   log.norm.counts <- log2(norm.counts + 1)
 
   # 
   normalizedSExpr <- sExpr
-  assay(normalizedSExpr, 'counts') <- log.norm.counts
+  SummarizedExperiment::assay(normalizedSExpr, 'counts') <- log.norm.counts
   dee2Data[['normalizedSExpr']] <- normalizedSExpr
 
   dee2Data

@@ -5,7 +5,7 @@
 \title{Deseq2 normalization based on gene-level count data summarized from 
 transcript-level estimates}
 \usage{
-Deseq2NormalizationFromTranscriptLevelData(dee2Data)
+Deseq2NormalizationFromTranscriptLevelData(dee2Data, counts.cutoff = 10)
 }
 \description{
 Deseq2 normalization based on gene-level count data summarized from 
