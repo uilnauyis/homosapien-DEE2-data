@@ -1,16 +1,16 @@
-#' PCA analysis of normalized count data and plot the result in 2D / 3D scatter
-#' graphs
+#' PCA analysis of the count data and plot the result in 2D / 3D scatter graphs
 #'
-#' @param sExpr  a SummarizedExperiment object that contains filtered and normalized
-#'    count data along with gene information and sample metadata.
-#' @param plot the type of plot of the PCA analysis result
+#' @param sExpr  a SummarizedExperiment object that contains count data along 
+#' with gene information and sample metadata.
+#' @param plot the option of the plot of the PCA analysis result, which should
+#' be either '2d' or '3d'
 #' @export
 #' @importFrom SummarizedExperiment colData assay
 #' @importFrom plotly layout plot_ly add_markers
 #' @importFrom dplyr '%>%'
 #' @importFrom matrixStats rowVars
 
-pcaPlot <- function(sExpr, plot = c("3d", "2d")) {
+pcaPlot <- function(sExpr, plot = '3d') {
   ############################################################################
   ## PART III. PCA Analysis of the filtered data
   ############################################################################
@@ -21,6 +21,9 @@ pcaPlot <- function(sExpr, plot = c("3d", "2d")) {
   ## What is this good for?
   ##   a. Visualization and exploratory data analysis
   ##   b. Generates values to be used for cell scoring
+  
+  # Check plot option variable, which should be either '3d' or '2d' 
+  stopifnot(plot == '2d' || plot == '3d')
   
   normalizedCount <- SummarizedExperiment::assay(sExpr, 'counts')
   pdata <- SummarizedExperiment::colData(sExpr)
@@ -43,32 +46,54 @@ pcaPlot <- function(sExpr, plot = c("3d", "2d")) {
   tooltips <- paste(" <strong>", rownames(pca.comp),"</strong><br />", 
                     pca.comp$cell_type)
   
+  ## Text on hover
+  text.hover <- ~paste('Cell type:', cell_type, 
+         '<br>SRR Accession:', SRR_accession, 
+         '<br>Category:', category)
+  
+  symbol.factor <- ~category
+  symbols = c('circle','x','o')
+  
   if (plot == "2d") {
 
     ## 2D plot
-    fig1 <- plotly::plot_ly(data =  pca.comp, x = ~PC1, y = ~PC2, color = ~cell_type)
-    fig1 <- fig1 %>% plotly::layout(title="PCA plot (PC1, PC2)",
-                            xaxis = list(title = paste('PC1(', pc1ExplainedVar, '%)', sep = '')),
-                            yaxis = list(title = paste('PC2(', pc2ExplainedVar, '%)', sep = '')))
+    fig1 <- plot_ly(data = pca.comp, x = ~PC1, y = ~PC2, color = ~cell_type, 
+                    text = text.hover, symbol = symbol.factor, 
+                    symbols = symbols)
+    fig1 <- fig1 %>% layout(title="PCA plot (PC1, PC2)",
+                            xaxis = list(title = paste('PC1(', pc1ExplainedVar, '%)', 
+                                                       sep = '')),
+                            yaxis = list(title = paste('PC2(', pc2ExplainedVar, '%)', 
+                                                       sep = '')))
 
-    fig2 <- plotly::plot_ly(data =  pca.comp, x = ~PC1, y = ~PC3, color = ~cell_type)
-    fig2 <- fig2 %>% plotly::layout(title="PCA plot (PC1, PC3)",
-                            xaxis = list(title = paste('PC1(', pc1ExplainedVar, '%)', sep = '')),
-                            yaxis = list(title = paste('PC3(', pc3ExplainedVar, '%)', sep = '')))
+    fig2 <- plot_ly(data =  pca.comp, x = ~PC1, y = ~PC3, color = ~cell_type, 
+                    text = text.hover, symbol = symbol.factor, 
+                    symbols = symbols)
+    fig2 <- fig2 %>% layout(title="PCA plot (PC1, PC3)",
+                            xaxis = list(title = paste('PC1(', pc1ExplainedVar, '%)', 
+                                                       sep = '')),
+                            yaxis = list(title = paste('PC3(', pc3ExplainedVar, '%)', 
+                                                       sep = '')))
 
-    fig3 <- plotly::plot_ly(data =  pca.comp, x = ~PC2, y = ~PC3, color = ~cell_type)
-    fig3 <- fig3 %>% plotly::layout(title="PCA plot (PC2, PC3)",
-                            xaxis = list(title = paste('PC2(', pc2ExplainedVar, '%)', sep = '')),
-                            yaxis = list(title = paste('PC3(', pc3ExplainedVar, '%)', sep = '')))
+    fig3 <- plot_ly(data =  pca.comp, x = ~PC2, y = ~PC3, color = ~cell_type, 
+                    text = text.hover, symbol = symbol.factor, 
+                    symbols = symbols)
+    fig3 <- fig3 %>% layout(title="PCA plot (PC2, PC3)",
+                            xaxis = list(title = paste('PC2(', pc2ExplainedVar, '%)', 
+                                                       sep = '')),
+                            yaxis = list(title = paste('PC3(', pc3ExplainedVar, '%)', 
+                                                       sep = '')))
 
     return(list(fig1, fig2, fig3))
   } else {
     ## 3D plot
-    fig <- plotly::plot_ly(pca.comp, x = ~PC1, y = ~PC2, z = ~PC3, color = ~cell_type)
-    fig <- fig %>% plotly::add_markers()
-    fig <- fig %>% plotly::layout(scene = list(xaxis = list(title = paste('PC1(', pc1ExplainedVar, '%)', sep = '')),
-                                       yaxis = list(title = paste('PC2(', pc2ExplainedVar, '%)', sep = '')),
-                                       zaxis = list(title = paste('PC3(', pc3ExplainedVar, '%)', sep = ''))))
+    fig <- plot_ly(pca.comp, x = ~PC1, y = ~PC2, z = ~PC3, color = ~cell_type, 
+                   text = text.hover, symbol = symbol.factor, 
+                   symbols = symbols)
+    fig <- fig %>% add_markers()
+    fig <- fig %>% layout(scene = list(xaxis = list(title = paste('PC1(', pc1ExplainedVar, '%)', sep = '')),
+                                  yaxis = list(title = paste('PC2(', pc2ExplainedVar, '%)', sep = '')),
+                                  zaxis = list(title = paste('PC3(', pc3ExplainedVar, '%)', sep = ''))))
     
     fig
   }

@@ -1,6 +1,9 @@
 ---
 title: "Data-Preparation-Workflow"
-output: rmarkdown::html_vignette
+output: 
+  html_document:
+    fig_width: 10
+    fig_height: 8
 vignette: >
   %\VignetteIndexEntry{Data-Preparation-Workflow}
   %\VignetteEngine{knitr::rmarkdown}

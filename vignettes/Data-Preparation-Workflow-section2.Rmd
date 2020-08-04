@@ -1,0 +1,66 @@
+---
+title: "Data Preparation Workflow (Section 2)"
+author: "Siyuan"
+date: "7/25/2020"
+output: 
+  html_document:
+    fig_width: 10
+    fig_height: 8
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, # show code
+                      message = FALSE # hide console output
+                      )
+```
+
+DESeq2 normalization of the gene-level count data
+
+### Step 1: Load the dependencies
+```{r}
+library(DEE2HsapienData)
+library(SummarizedExperiment)
+```
+
+### Step 2: Reload the data downloaded from DEE2 in the steps in Section 1
+```{r}
+tempDirPath <- paste(getwd(), 'temp', sep = '/')
+dee2DataPath <- paste(tempDirPath, 'dee2Data', sep='/')
+dee2Data <- readRDS(dee2DataPath)
+```
+
+### Step 3: Normalize the count data with DESeq2 normalization
+```{r}
+dESeq2NormalizedData <- Deseq2Normalization(dee2Data)
+```
+
+### Step 4: PCA plots
+Compare PCA plots of the data before normalization and the data normalized with DESeq2 normalization.
+
+#### PCA plots of the data before normalization
+
+```{r}
+
+pcaPlot(dee2Data$sExpr)
+pcaPlot2d <- pcaPlot(dee2Data$sExpr, plot = '2d')
+pcaPlot2d[[1]]
+pcaPlot2d[[2]]
+pcaPlot2d[[3]]
+```
+
+#### PCA plots of the data after DESeq2 normalization
+
+```{r}
+pcaPlot(dESeq2NormalizedData$normalizedSExpr)
+pcaPlot2d <- pcaPlot(dESeq2NormalizedData$normalizedSExpr, 
+        plot = '2d')
+pcaPlot2d[[1]]
+pcaPlot2d[[2]]
+pcaPlot2d[[3]]
+```
+
+### Step 6: Save the normalized data
+```{r}
+saveRDS(dESeq2NormalizedData, 
+        file=paste(tempDirPath, 'dESeq2NormalizedData', sep='/'))
+```

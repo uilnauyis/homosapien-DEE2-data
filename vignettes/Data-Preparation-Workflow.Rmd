@@ -1,91 +1,70 @@
 ---
-title: "Data-Preparation-Workflow"
+title: "Data Preparation Workflow (Section 1)"
+author: "Siyuan"
+date: "7/25/2020"
 output: 
-  rmarkdown::html_vignette:
-    css: ./css/Data-Preparation-Workflow.css
-vignette: >
-  %\VignetteIndexEntry{Data-Preparation-Workflow}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  html_document:
+    fig_width: 10
+    fig_height: 8
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+knitr::opts_chunk$set(echo = TRUE, # show code
+                      message = FALSE # hide console output
+                      )
 ```
 
+This is a brief introduction of how to use this library to collect and preprocess data that would be used for CellScore analysis. In this tutorial, we demonstrate how to use this package to download the data, summarize gene-level count data from transcript-level count, normalize count data and plot the data for PCA analysis.
+
+
+In this section, we start from collecting the selected data from DEE2
+
+### Step 1: Load the dependencies
 ```{r setup}
-## load the library
 library(DEE2HsapienData)
+library(SummarizedExperiment)
 ```
-```{r}
 
+### Step 2: Download the selected hsapien data and compose a 'SummarizedExperiment' object
+First, We create a 'temp' folder and run 'getDEE2Data' function to:
+
+1. Download the data (a list object) from DEE2.
+2. Compose a SummarizedExperiment object named 'sExpr' and add it to the list object.
+
+Then we save the list object in the 'temp' folder.
+```{r}
 ## Creat a 'temp' directory in current working directory if it is not created
-## already. In this tutorial, we use it as the workspace 
+## already. In this tutorial, we use it to save the data. 
 tempDirPath <- paste(getwd(), 'temp', sep = '/')
 dir.create(tempDirPath)
 
-## get the 'list' object. 
+## get the selected homosapien data that is summarized in a 'List' Object.
 dee2Data <- getDEE2Data(
- "/home/siyuan/Repos/DEE2HsapienData/inst/extdata/SelectedDEE2_testtwosamples.ods",
- paste(tempDirPath, 'DEE2Data', sep = '/') , 
- 'hsapiens')
- ```
- ```{r}
-## This operation may requires up to 8GB of memory
+ system.file("extdata", "SelectedDEE2_v2.ods",
+             package="DEE2HsapienData"),
+             paste(tempDirPath, 'DEE2Data', sep = '/') , 
+            'hsapiens')
+```
+### Step 3: Summarize the transcript-level DEE2 data to the gene-level count data using 'tximport'
+When we download the data from DEE2, the data includes both the gene- and 
+transcript-level count data. The gene-level count data from DEE2 was summarized with 'STAR' aligner. We are also interested in summarizing the transcript-level count data with 'tximport' to gene-level count and compare it with gene-level data downloaded from DEE2. The following code summarizes transcript-level DEE2 data to the gene-level count data using 'tximport' and add it as an element in the 'dee2Data' list object.
+```{r}
+## This operation may requires up to 8GB of memory and long time for download 
+## the data
 dee2Data <- tximportDee2Data('hsapiens', dee2Data, )
 ```
+### Step 4: Generate 2D and 3D PCA plots for raw data and save the data  
+We plot the gene-level count data that is downloaded from DEE2 and summarized from transcript-level data respectively. 
 ```{r}
-## Normalize gene-level count data with Deseq2 normalization
-dESeq2NormalizedData <- Deseq2Normalization(dee2Data)
+pcaPlot(dee2Data$sExpr)
+pcaPlot2d <- pcaPlot(dee2Data$sExpr, plot = '2d');
+pcaPlot2d[[1]]
+pcaPlot2d[[2]]
+pcaPlot2d[[3]]
+# pcaPlot(dee2Data$txi)
 ```
-```{r}
-## Normalize gene-level count data summarzied from transcript-level data with 
-## Deseq2 normalization
-dESeq2NormalizedDataFromTxLevelData <- Deseq2NormalizationFromTranscriptLevelData(dee2Data)
-```
-```{r}
-## Normalize gene-level count data with TMM normalization
-tmmNormalizedData <- TmmNormalization(dee2Data)
-```
-```{r}
-## Normalize gene-level count data summarzied from transcript-level data with 
-## TMM normalization
-tmmNormalizedDataFromTxLevelData <- TmmNormalizationFromTranscriptLevelData(dee2Data)
-```
-```{r}
-pcaPlot(dESeq2NormalizedData$normalizedSExpr)
-```
-```{r}
-DESeq2NormalizedData2dPcaPlots <- pcaPlot(dESeq2NormalizedData$normalizedSExpr, 
-                                          plot = '2d')
-DESeq2NormalizedData2dPcaPlots[[1]]
-DESeq2NormalizedData2dPcaPlots[[2]]
-DESeq2NormalizedData2dPcaPlots[[3]]                    
-```
-```{r}
-pcaPlot(dESeq2NormalizedData$normalizedSExpr)
-```
-```{r}
-DESeq2NormalizedDataFromTxLevelData2dPcaPlots <- pcaPlot(
-  dESeq2NormalizedDataFromTxLevelData$normalizedSExpr, 
-  plot = '2d')
-DESeq2NormalizedDataFromTxLevelData2dPcaPlots[[1]]
-DESeq2NormalizedDataFromTxLevelData2dPcaPlots[[2]]
-DESeq2NormalizedDataFromTxLevelData2dPcaPlots[[3]]
-```
-```{r}
-pcaPlot(tmmNormalizedData$normalizedSExpr)
-```
-```{r}
-pcaPlot(tmmNormalizedData$normalizedSExpr, plot = '2d')
-```
-```{r}
-pcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr)
-```
-```{r}
-pcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr, plot = '2d')
+Save the downloaded and preprocessed data in the 'temp' folder.
 
+```{r}
+saveRDS(dee2Data, file=paste(tempDirPath, 'dee2Data', sep='/'))
 ```

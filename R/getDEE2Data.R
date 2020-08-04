@@ -200,7 +200,6 @@ getDEE2Data <- function(
     sampleMetadataDframe <- merge(samplesInfoDFrame, sampleMetadataDframe, 
         by = 'SRR_accession')
     rownames(sampleMetadataDframe) <- sampleMetadataDframe[, "SRR_accession", ]    
-    sampleMetadataDframe[, "SRR_accession"] <- NULL
 
     sampleMetadataDframe
 }

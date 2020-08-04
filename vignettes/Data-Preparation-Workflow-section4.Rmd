@@ -1,0 +1,62 @@
+---
+title: "Data Preparation Workflow (Section 4)"
+author: "Siyuan"
+date: "7/25/2020"
+output: 
+  html_document:
+    fig_width: 10
+    fig_height: 8
+---
+
+TMM Normalization of the gene-level count data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, # show code
+                      message = FALSE # hide console output
+                      )
+```
+
+### Step 1: Load the library
+```{r}
+## load the library
+library(DEE2HsapienData)
+library(SummarizedExperiment)
+```
+
+### Step 2: Reload the data downloaded from DEE2
+```{r}
+tempDirPath <- paste(getwd(), 'temp', sep = '/')
+dee2DataPath <- paste(tempDirPath, 'dee2Data', sep='/')
+dee2Data <- readRDS(dee2DataPath)
+```
+
+### Step 3: Normalize the count data 
+```{r}
+tmmNormalizedData <- TmmNormalization(dee2Data)
+```
+
+### Step 4: PCA plots
+Compare PCA plots of the data before normalization and the normalized data
+
+#### PCA plots of the data before normalization
+```{r}
+pcaPlot(dee2Data$sExpr)
+pcaPlot2d <- pcaPlot(dee2Data$sExpr, plot = '2d')
+pcaPlot2d[[1]]
+pcaPlot2d[[2]]
+pcaPlot2d[[3]]
+```
+#### PCA plots of the data after TMM normalization
+```{r}
+pcaPlot(tmmNormalizedData$normalizedSExpr)
+pcaPlot2d <- pcaPlot(tmmNormalizedData$normalizedSExpr, 
+                     plot = '2d')
+pcaPlot2d[[1]]
+pcaPlot2d[[2]]
+pcaPlot2d[[3]]
+```
+#### Save the normalized data
+```{r}
+saveRDS(tmmNormalizedData, 
+        file=paste(tempDirPath, 'tmmNormalizedData', sep='/'))
+```
