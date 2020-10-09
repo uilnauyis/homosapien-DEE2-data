@@ -32,7 +32,7 @@ dee2Data <- readRDS(dee2DataPath)
 
 ### Step 3: Normalize the count data 
 ```{r}
-tmmNormalizedData <- TmmNormalization(dee2Data)
+tmmNormalizedData <- TMMNormalization(dee2Data)
 ```
 
 ### Step 4: PCA plots
@@ -40,20 +40,20 @@ Compare PCA plots of the data before normalization and the normalized data
 
 #### PCA plots of the data before normalization
 ```{r}
-pcaPlot(dee2Data$sExpr)
-pcaPlot2d <- pcaPlot(dee2Data$sExpr, plot = '2d')
-pcaPlot2d[[1]]
-pcaPlot2d[[2]]
-pcaPlot2d[[3]]
+PcaPlot(dee2Data$sExpr)
+PcaPlot2d <- PcaPlot(dee2Data$sExpr, plot = '2d')
+PcaPlot2d[[1]]
+PcaPlot2d[[2]]
+PcaPlot2d[[3]]
 ```
 #### PCA plots of the data after TMM normalization
 ```{r}
-pcaPlot(tmmNormalizedData$normalizedSExpr)
-pcaPlot2d <- pcaPlot(tmmNormalizedData$normalizedSExpr, 
+PcaPlot(tmmNormalizedData$normalizedSExpr)
+PcaPlot2d <- PcaPlot(tmmNormalizedData$normalizedSExpr, 
                      plot = '2d')
-pcaPlot2d[[1]]
-pcaPlot2d[[2]]
-pcaPlot2d[[3]]
+PcaPlot2d[[1]]
+PcaPlot2d[[2]]
+PcaPlot2d[[3]]
 ```
 #### Save the normalized data
 ```{r}

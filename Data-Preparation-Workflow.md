@@ -25,7 +25,7 @@ dir.create(tempDirPath)
 #> vignettes/temp' already exists
 
 ## get the 'list' object. 
-dee2Data <- getDEE2Data(
+dee2Data <- GetDEE2Data(
  system.file("extdata", "SelectedDEE2_v2.ods", package = "DEE2HsapienData"),
  paste(tempDirPath, 'DEE2Data', sep = '/') , 
  'hsapiens')
@@ -75,18 +75,18 @@ dESeq2NormalizedDataFromTxLevelData <- Deseq2NormalizationFromTranscriptLevelDat
 #> using counts and average transcript lengths from tximport
 #> using 'avgTxLength' from assays(dds), correcting for library size
 ## Normalize gene-level count data with Deseq2 normalization
-tmmNormalizedData <- TmmNormalization(dee2Data)
+tmmNormalizedData <- TMMNormalization(dee2Data)
 #> Warning in filterByExpr.DGEList(dgeList): All samples appear to belong to the
 #> same group.
 ## Normalize gene-level count data with Deseq2 normalization
-tmmNormalizedDataFromTxLevelData <- TmmNormalizationFromTranscriptLevelData(dee2Data)
+tmmNormalizedDataFromTxLevelData <- TMMNormalizationFromTranscriptLevelData(dee2Data)
 #> Warning in filterByExpr.DGEList(y): All samples appear to belong to the same
 #> group.
 #> Warning in normarg_mcols(value, class(x), length(x)): You supplied metadata columns of length 13800 to set on an object of
 #>   length 14603. However please note that the latter is not a multiple of
 #>   the former.
 
-pcaPlot(dESeq2NormalizedData$normalizedSExpr)
+PcaPlot(dESeq2NormalizedData$normalizedSExpr)
 #> Warning in if (plot == "2d") {: the condition has length > 1 and only the first
 #> element will be used
 #> Warning: `arrange_()` is deprecated as of dplyr 0.7.0.
@@ -105,7 +105,7 @@ pcaPlot(dESeq2NormalizedData$normalizedSExpr)
 #> Warning in file(con, "rb"): cannot open file 'webshot16db861d8feb3.png': No such
 #> file or directory
 #> Error in file(con, "rb"): cannot open the connection
-pcaPlot(dESeq2NormalizedData$normalizedSExpr, plot = '2d')
+PcaPlot(dESeq2NormalizedData$normalizedSExpr, plot = '2d')
 #> [[1]]
 #> No trace type specified:
 #>   Based on info supplied, a 'scatter' trace seems appropriate.
@@ -144,7 +144,7 @@ pcaPlot(dESeq2NormalizedData$normalizedSExpr, plot = '2d')
 #> Warning in RColorBrewer::brewer.pal(N, "Set2"): n too large, allowed maximum for palette Set2 is 8
 #> Returning the palette you asked for with that many colors
 
-pcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr)
+PcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr)
 #> Warning in if (plot == "2d") {: the condition has length > 1 and only the first element will be used
 
 #> Warning in if (plot == "2d") {: n too large, allowed maximum for palette Set2 is 8
@@ -158,7 +158,7 @@ pcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr)
 #> Warning in file(con, "rb"): cannot open file 'webshot16db852124e0d.png': No such
 #> file or directory
 #> Error in file(con, "rb"): cannot open the connection
-pcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr, plot = '2d')
+PcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr, plot = '2d')
 #> [[1]]
 #> No trace type specified:
 #>   Based on info supplied, a 'scatter' trace seems appropriate.
@@ -197,7 +197,7 @@ pcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr, plot = '2d')
 #> Warning in RColorBrewer::brewer.pal(N, "Set2"): n too large, allowed maximum for palette Set2 is 8
 #> Returning the palette you asked for with that many colors
 
-pcaPlot(tmmNormalizedData$normalizedSExpr)
+PcaPlot(tmmNormalizedData$normalizedSExpr)
 #> Warning in if (plot == "2d") {: the condition has length > 1 and only the first element will be used
 
 #> Warning in if (plot == "2d") {: n too large, allowed maximum for palette Set2 is 8
@@ -211,7 +211,7 @@ pcaPlot(tmmNormalizedData$normalizedSExpr)
 #> Warning in file(con, "rb"): cannot open file 'webshot16db85f2f97d4.png': No such
 #> file or directory
 #> Error in file(con, "rb"): cannot open the connection
-pcaPlot(tmmNormalizedData$normalizedSExpr, plot = '2d')
+PcaPlot(tmmNormalizedData$normalizedSExpr, plot = '2d')
 #> [[1]]
 #> No trace type specified:
 #>   Based on info supplied, a 'scatter' trace seems appropriate.
@@ -250,7 +250,7 @@ pcaPlot(tmmNormalizedData$normalizedSExpr, plot = '2d')
 #> Warning in RColorBrewer::brewer.pal(N, "Set2"): n too large, allowed maximum for palette Set2 is 8
 #> Returning the palette you asked for with that many colors
 
-pcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr)
+PcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr)
 #> Warning in if (plot == "2d") {: the condition has length > 1 and only the first element will be used
 
 #> Warning in if (plot == "2d") {: n too large, allowed maximum for palette Set2 is 8
@@ -264,7 +264,7 @@ pcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr)
 #> Warning in file(con, "rb"): cannot open file 'webshot16db864f150c8.png': No such
 #> file or directory
 #> Error in file(con, "rb"): cannot open the connection
-pcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr, plot = '2d')
+PcaPlot(tmmNormalizedDataFromTxLevelData$normalizedSExpr, plot = '2d')
 #> [[1]]
 #> No trace type specified:
 #>   Based on info supplied, a 'scatter' trace seems appropriate.

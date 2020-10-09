@@ -8,7 +8,7 @@ output:
     fig_height: 8
 ---
 
-Deseq2 normalization of gene-level count data summarzied from transcript-level data with 'tximport'
+DESeq2 normalization of gene-level count data summarzied from transcript-level data with 'tximport'
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, # show code
@@ -33,7 +33,7 @@ dee2Data <- readRDS(dee2DataPath)
 ### Step 3: Normalize count data and plot PCA plots
 ```{r}
 dESeq2NormalizedDataFromTxLevelData <- 
-  Deseq2NormalizationFromTranscriptLevelData(dee2Data)
+  DESeq2NormalizationFromTranscriptLevelData(dee2Data)
 
 ```
 ### Step 4: PCA plots
@@ -41,21 +41,21 @@ Compare PCA plots of data before normalization and normalized data
 
 #### PCA plots of data before normalization
 ```{r}
-pcaPlot(dee2Data$sExpr)
-pcaPlot2d <- pcaPlot(dee2Data$sExpr, plot = '2d')
-pcaPlot2d[[1]]
-pcaPlot2d[[2]]
-pcaPlot2d[[3]]
+PcaPlot(dee2Data$sExpr)
+PcaPlot2d <- PcaPlot(dee2Data$sExpr, plot = '2d')
+PcaPlot2d[[1]]
+PcaPlot2d[[2]]
+PcaPlot2d[[3]]
 ```
-#### PCA plots of data after Deseq2 normalization
+#### PCA plots of data after DESeq2 normalization
 ```{r}
 
-pcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr)
-pcaPlot2d <- pcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr, 
+PcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr)
+PcaPlot2d <- PcaPlot(dESeq2NormalizedDataFromTxLevelData$normalizedSExpr, 
         plot = '2d')
-pcaPlot2d[[1]]
-pcaPlot2d[[2]]
-pcaPlot2d[[3]]
+PcaPlot2d[[1]]
+PcaPlot2d[[2]]
+PcaPlot2d[[3]]
 ```
 #### Save the normalized data
 ```{r}

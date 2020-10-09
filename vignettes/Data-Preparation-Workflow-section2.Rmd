@@ -9,8 +9,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, # show code
-                      message = FALSE # hide console output
+knitr::opts_chunk$set(echo = TRUE,      # show code
+                      message = FALSE   # hide console output
                       )
 ```
 
@@ -29,9 +29,10 @@ dee2DataPath <- paste(tempDirPath, 'dee2Data', sep='/')
 dee2Data <- readRDS(dee2DataPath)
 ```
 
-### Step 3: Normalize the count data with DESeq2 normalization
+### Step 3: Normalize the count data with DESeq2 normalization and get the SummarizedExperiment object for downstream analysis.
 ```{r}
-dESeq2NormalizedData <- Deseq2Normalization(dee2Data)
+dESeq2NormalizedData <- DESeq2Normalization(dee2Data)
+dESeq2NormalizedSExpr <- dESeq2NormalizedData$normalizedSExpr
 ```
 
 ### Step 4: PCA plots
@@ -41,26 +42,28 @@ Compare PCA plots of the data before normalization and the data normalized with 
 
 ```{r}
 
-pcaPlot(dee2Data$sExpr)
-pcaPlot2d <- pcaPlot(dee2Data$sExpr, plot = '2d')
-pcaPlot2d[[1]]
-pcaPlot2d[[2]]
-pcaPlot2d[[3]]
+PcaPlot(dee2Data$sExpr)
+PcaPlot2d <- PcaPlot(dee2Data$sExpr, plot = '2d')
+PcaPlot2d[[1]]
+PcaPlot2d[[2]]
+PcaPlot2d[[3]]
 ```
 
 #### PCA plots of the data after DESeq2 normalization
 
 ```{r}
-pcaPlot(dESeq2NormalizedData$normalizedSExpr)
-pcaPlot2d <- pcaPlot(dESeq2NormalizedData$normalizedSExpr, 
-        plot = '2d')
-pcaPlot2d[[1]]
-pcaPlot2d[[2]]
-pcaPlot2d[[3]]
+PcaPlot(dESeq2NormalizedSExpr)
+PcaPlot2d <- PcaPlot(dESeq2NormalizedSExpr, plot = '2d')
+PcaPlot2d[[1]]
+PcaPlot2d[[2]]
+PcaPlot2d[[3]]
 ```
 
-### Step 6: Save the normalized data
+### Step 6: Generate Calls
+dESeq2NormalizedSExpr <- GenerateCalls(dESeq2NormalizedSExpr)
+
+### Step 7: Save the normalized data
 ```{r}
-saveRDS(dESeq2NormalizedData, 
-        file=paste(tempDirPath, 'dESeq2NormalizedData', sep='/'))
+saveRDS(dESeq2NormalizedSExpr, 
+        file=paste(tempDirPath, 'dESeq2NormalizedSExpr', sep='/'))
 ```
